@@ -1,2 +1,3 @@
 # CometBot
-Simple discord bot
+
+Simple music discord bot
