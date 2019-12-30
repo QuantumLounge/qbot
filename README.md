@@ -1,0 +1,2 @@
+# CometBot
+Simple discord bot
