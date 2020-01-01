@@ -23,6 +23,8 @@ import codedcosmos.cometbot.utils.log.Log;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 
+import java.util.Arrays;
+
 public class Play implements Command {
 	@Override
 	public String getHelp() {
@@ -47,31 +49,38 @@ public class Play implements Command {
 		context.getSpeaker().updateLastTextChannel(event.getTextChannel());
 
 		// Get Links
-		String[] links = event.getMessage().getContentRaw().split(" ");
+		String[] args = event.getMessage().getContentRaw().split(" ");
+		String[] links = Arrays.copyOfRange(args, 1, args.length);
+
+		// Get size before adding
+		int queueSizePrevious = context.getSpeaker().getQueueSize();
 
 		// Add to queue
-		for (int i = 1; i < links.length; i++) {
+		for (int i = 0; i < links.length; i++) {
 			context.getSpeaker().addToQueue(event.getTextChannel(), event.getAuthor().getName(), links[i]);
 		}
 
 		// Wait for queue to complete, or wait 1 second
 		long timeout = System.currentTimeMillis();
-		while (context.getSpeaker().getQueueSize() < links.length-1) {
-			if (links.length == 1 || System.currentTimeMillis() > timeout+1000) break;
+		while (context.getSpeaker().getQueueSize() < queueSizePrevious+links.length) {
+			if (links.length == 0) {
+				break;
+			}
+			if (System.currentTimeMillis() > timeout+5000) {
+				Log.print("Waited 5 seconds for queue to complete.");
+				break;
+			}
 		}
 
-
-		if (context.getSpeaker().hasSongsInQueue()) {
-			if (links.length > 1) {
-				TextChannelHandler.sendThenWait(event,"There are now " + context.getSpeaker().getQueueSize() + " songs in the queue!");
-			} else {
-				TextChannelHandler.sendThenWait(event,"Continuing Playback");
-			}
+		if (!context.getSpeaker().isPlaying() && !context.getSpeaker().isStopped()) {
+			TextChannelHandler.sendThenWait(event,"Continuing Playback");
+		} else if (context.getSpeaker().hasSongsInQueue()) {
+			TextChannelHandler.sendThenWait(event,"There are now " + context.getSpeaker().getQueueSize() + " songs in the queue!");
 		} else {
 			// No songs in queue
 			Log.print("Play say's there are no songs in the queue");
 
-			if (links.length == 1) {
+			if (links.length == 0) {
 				TextChannelHandler.send(event, "You must add item's to the queue first!");
 			}
 

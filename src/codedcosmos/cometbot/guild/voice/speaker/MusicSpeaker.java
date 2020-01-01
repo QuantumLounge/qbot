@@ -40,6 +40,7 @@ public class MusicSpeaker extends AudioEventAdapter {
 	private AudioSendHandler sendHandler;
 
 	private boolean isPlaying = false;
+	private boolean isStopped = true;
 
 	private TextChannel lastTextChannel;
 
@@ -98,6 +99,7 @@ public class MusicSpeaker extends AudioEventAdapter {
 		player.startTrack(track, true);
 		numberOfSongs++;
 		isPlaying = true;
+		isStopped = false;
 
 		// Send Message
 		Log.print("Playing " + track);
@@ -203,7 +205,9 @@ public class MusicSpeaker extends AudioEventAdapter {
 
 	public void stop() {
 		player.stopTrack();
+		clearSongs();
 		isPlaying = false;
+		isStopped = true;
 	}
 
 	public boolean toggleShuffle() {
@@ -215,6 +219,13 @@ public class MusicSpeaker extends AudioEventAdapter {
 		return isShuffling;
 	}
 	// ##### STATE CHANGE ##### \\
+
+	// ##### MESSAGE ##### \\
+	public void sendLeaveMessage() {
+		TextChannelHandler.sendThenWait(lastTextChannel, "Left channel, guess the party is over.");
+		stop();
+	}
+	// ##### MESSAGE ##### \\
 
 	// ##### GETTERS ##### \\
 	public int getQueueSize() {
@@ -243,6 +254,10 @@ public class MusicSpeaker extends AudioEventAdapter {
 
 	public void updateLastTextChannel(TextChannel channel) {
 		this.lastTextChannel = channel;
+	}
+
+	public boolean isStopped() {
+		return isStopped;
 	}
 	// ##### GETTERS ##### \\
 }

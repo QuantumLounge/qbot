@@ -25,6 +25,7 @@ import net.dv8tion.jda.api.events.guild.GuildJoinEvent;
 import net.dv8tion.jda.api.events.guild.GuildReadyEvent;
 import net.dv8tion.jda.api.events.guild.voice.GuildVoiceJoinEvent;
 import net.dv8tion.jda.api.events.guild.voice.GuildVoiceLeaveEvent;
+import net.dv8tion.jda.api.events.guild.voice.GuildVoiceMoveEvent;
 import net.dv8tion.jda.api.events.message.guild.react.GuildMessageReactionAddEvent;
 import net.dv8tion.jda.api.events.message.guild.react.GuildMessageReactionRemoveEvent;
 import net.dv8tion.jda.api.hooks.EventListener;
@@ -57,6 +58,10 @@ public class EventHandler implements EventListener {
 
 		else if (event instanceof GuildVoiceLeaveEvent) {
 			GuildVoiceConnectStatus.onVoiceLeaveEvent((GuildVoiceLeaveEvent)event);
+		}
+
+		else if (event instanceof GuildVoiceMoveEvent) {
+			GuildVoiceConnectStatus.onVoiceMoveEvent((GuildVoiceMoveEvent)event);
 		}
 
 		// Emote

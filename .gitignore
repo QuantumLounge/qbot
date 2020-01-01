@@ -4,3 +4,5 @@ build/
 cometbot.properties
 funideas.txt
 lib/
+upload.sh
+out/

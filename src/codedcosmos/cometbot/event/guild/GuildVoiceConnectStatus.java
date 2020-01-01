@@ -18,8 +18,11 @@ import codedcosmos.cometbot.guild.chat.commands.Leave;
 import codedcosmos.cometbot.guild.context.GuildContext;
 import codedcosmos.cometbot.guild.context.Guilds;
 import codedcosmos.cometbot.utils.log.Log;
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.VoiceChannel;
 import net.dv8tion.jda.api.events.guild.voice.GuildVoiceJoinEvent;
 import net.dv8tion.jda.api.events.guild.voice.GuildVoiceLeaveEvent;
+import net.dv8tion.jda.api.events.guild.voice.GuildVoiceMoveEvent;
 
 public class GuildVoiceConnectStatus  {
 	public static void onVoiceJoinEvent(GuildVoiceJoinEvent event) {
@@ -32,6 +35,25 @@ public class GuildVoiceConnectStatus  {
 		if (event.getChannelLeft().getMembers().size() == 1) {
 			Leave.disconnect(event.getGuild());
 			Log.print("Left channel, because noone was in there.");
+		}
+	}
+
+	public static void onVoiceMoveEvent(GuildVoiceMoveEvent event) {
+		// Check to see how many people are in guild voice channel
+		if (event.getChannelLeft().getMembers().size() == 1) {
+			Leave.disconnect(event.getGuild());
+			Log.print("Left channel, because noone was in there.");
+		}
+	}
+
+	public static void onLeave(VoiceChannel channel, Guild guild) {
+		// Check to see how many people are in guild voice channel
+		if (channel.getMembers().size() == 1) {
+			Leave.disconnect(guild);
+			Log.print("Left channel, because noone was in there.");
+
+			GuildContext context = Guilds.getContextBy(guild);
+			context.getSpeaker().sendLeaveMessage();
 		}
 	}
 }

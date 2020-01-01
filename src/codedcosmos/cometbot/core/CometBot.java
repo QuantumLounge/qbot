@@ -33,7 +33,7 @@ import java.util.HashMap;
 public class CometBot {
 
 	// Version
-	private static final String VERSION = "0.1 - alpha";
+	public static final String VERSION = "0.2";
 
 	// Commands
 	public static ArrayList<Command> commands;
@@ -114,6 +114,7 @@ public class CometBot {
 		commands.add(new Shuffle());
 		commands.add(new Skip());
 		commands.add(new Stop());
+		commands.add(new Version());
 
 		Log.print("Found " + commands.size() + " commands!");
 
