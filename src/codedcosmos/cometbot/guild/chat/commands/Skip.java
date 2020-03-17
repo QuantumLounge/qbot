@@ -14,14 +14,18 @@
 
 package codedcosmos.cometbot.guild.chat.commands;
 
-import codedcosmos.cometbot.guild.chat.Command;
-import codedcosmos.cometbot.guild.chat.channel.TextChannelHandler;
-import codedcosmos.cometbot.guild.context.GuildContext;
-import codedcosmos.cometbot.guild.context.Guilds;
-import net.dv8tion.jda.api.entities.TextChannel;
+import codedcosmos.cometbot.core.CometBot;
+import codedcosmos.cometbot.guild.context.CometGuildContext;
+import codedcosmos.hyperdiscord.chat.TextSender;
+import codedcosmos.hyperdiscord.command.Command;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 
 public class Skip implements Command {
+	@Override
+	public String getName() {
+		return "skip";
+	}
+	
 	// Add skip multiple songs TODO
 	@Override
 	public String getHelp() {
@@ -35,11 +39,15 @@ public class Skip implements Command {
 
 	@Override
 	public void run(MessageReceivedEvent event) throws Exception {
-		TextChannelHandler.send(event,"Skipping Track!");
-
-		GuildContext context = Guilds.getContextBy(event.getGuild());
+		TextSender.send(event,"Skipping Track!");
+		
+		CometGuildContext context = CometBot.guilds.getContextBy(event.getGuild());
 
 		// Continue Playback
 		context.getSpeaker().skip();
+	}
+
+	public String[] getAliases() {
+		return new String[] {"Next", "IHateThisSong"};
 	}
 }

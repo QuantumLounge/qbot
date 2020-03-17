@@ -14,13 +14,18 @@
 
 package codedcosmos.cometbot.guild.chat.commands;
 
-import codedcosmos.cometbot.guild.chat.Command;
-import codedcosmos.cometbot.guild.chat.channel.TextChannelHandler;
-import codedcosmos.cometbot.guild.context.GuildContext;
-import codedcosmos.cometbot.guild.context.Guilds;
+import codedcosmos.cometbot.core.CometBot;
+import codedcosmos.cometbot.guild.context.CometGuildContext;
+import codedcosmos.hyperdiscord.chat.TextSender;
+import codedcosmos.hyperdiscord.command.Command;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 
 public class Stop implements Command {
+	@Override
+	public String getName() {
+		return "stop";
+	}
+	
 	@Override
 	public String getHelp() {
 		return "Stops the current song, removing it from the queue.";
@@ -33,9 +38,13 @@ public class Stop implements Command {
 
 	@Override
 	public void run(MessageReceivedEvent event) throws Exception {
-		TextChannelHandler.send(event,"Stopping Track!");
-
-		GuildContext context = Guilds.getContextBy(event.getGuild());
+		TextSender.send(event,"Stopping Track!");
+		
+		CometGuildContext context = CometBot.guilds.getContextBy(event.getGuild());
 		context.getSpeaker().stop();
+	}
+
+	public String[] getAliases() {
+		return new String[] {"Halt", "Stopit"};
 	}
 }

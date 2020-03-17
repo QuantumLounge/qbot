@@ -14,11 +14,16 @@
 
 package codedcosmos.cometbot.guild.chat.commands;
 
-import codedcosmos.cometbot.guild.chat.Command;
-import codedcosmos.cometbot.guild.chat.channel.TextChannelHandler;
+import codedcosmos.hyperdiscord.chat.TextSender;
+import codedcosmos.hyperdiscord.command.Command;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 
 public class Ping implements Command {
+	@Override
+	public String getName() {
+		return "ping";
+	}
+	
 	@Override
 	public String getHelp() {
 		return "Returns pong, after command is run.";
@@ -31,6 +36,10 @@ public class Ping implements Command {
 
 	@Override
 	public void run(MessageReceivedEvent event) throws Exception {
-		TextChannelHandler.sendThenWait(event,"pong!");
+		TextSender.sendThenWait(event,"pong!");
+	}
+
+	public String[] getAliases() {
+		return new String[] {"Pong"};
 	}
 }

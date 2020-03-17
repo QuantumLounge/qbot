@@ -14,14 +14,21 @@
 
 package codedcosmos.cometbot.guild.chat.commands;
 
-import codedcosmos.cometbot.guild.chat.Command;
-import codedcosmos.cometbot.guild.chat.channel.TextChannelHandler;
-import codedcosmos.cometbot.guild.context.GuildContext;
-import codedcosmos.cometbot.guild.context.Guilds;
+import codedcosmos.cometbot.core.CometBot;
+import codedcosmos.cometbot.fun.BotMessageBank;
+import codedcosmos.cometbot.fun.BotMessages;
+import codedcosmos.cometbot.guild.context.CometGuildContext;
+import codedcosmos.hyperdiscord.chat.TextSender;
+import codedcosmos.hyperdiscord.command.Command;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 
 public class ClearQueue implements Command {
-
+	
+	@Override
+	public String getName() {
+		return "clearqueue";
+	}
+	
 	@Override
 	public String getHelp() {
 		return "Clears the current queue of songs";
@@ -34,9 +41,17 @@ public class ClearQueue implements Command {
 
 	@Override
 	public void run(MessageReceivedEvent event) throws Exception {
-		GuildContext context = Guilds.getContextBy(event.getGuild());
-		context.getSpeaker().clearSongs();
+		CometGuildContext context = CometBot.guilds.getContextBy(event.getGuild());
+		
+		if (context.getSpeaker().getTrackList().size() > 0) {
+			context.getSpeaker().clearSongs();
+			TextSender.send(event, BotMessages.clearQueue.get());
+		} else {
+			TextSender.send(event, "Queue already empty");
+		}
+	}
 
-		TextChannelHandler.send(event,"Cleared Queue");
+	public String[] getAliases() {
+		return new String[] {"EmptyQueue"};
 	}
 }

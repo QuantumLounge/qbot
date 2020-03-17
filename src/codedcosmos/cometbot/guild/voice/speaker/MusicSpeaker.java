@@ -14,250 +14,207 @@
 
 package codedcosmos.cometbot.guild.voice.speaker;
 
-import codedcosmos.cometbot.guild.chat.channel.TextChannelHandler;
-import codedcosmos.cometbot.guild.chat.commands.Play;
-import codedcosmos.cometbot.guild.voice.MusicPlayer;
-import codedcosmos.cometbot.utils.log.Log;
-import com.sedmelluq.discord.lavaplayer.player.AudioLoadResultHandler;
+import codedcosmos.cometbot.guild.context.CometGuildContext;
+import codedcosmos.cometbot.guild.voice.speaker.components.AudioSendManager;
+import codedcosmos.cometbot.guild.voice.speaker.components.TrackList;
+import codedcosmos.cometbot.guild.voice.track.LoadedTrack;
+import codedcosmos.cometbot.guild.chat.messages.built.lastplaying.NowPlayingMessage;
+import codedcosmos.hyperdiscord.chat.TextSender;
+import codedcosmos.hyperdiscord.utils.debug.Log;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayer;
 import com.sedmelluq.discord.lavaplayer.player.event.AudioEventAdapter;
-import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
-import com.sedmelluq.discord.lavaplayer.track.AudioPlaylist;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackEndReason;
-import net.dv8tion.jda.api.audio.AudioSendHandler;
+import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.TextChannel;
-
-import java.util.LinkedList;
-import java.util.Random;
-import java.util.concurrent.CopyOnWriteArrayList;
+import net.dv8tion.jda.api.entities.VoiceChannel;
+import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+import java.util.Arrays;
 
 public class MusicSpeaker extends AudioEventAdapter {
-	// ##### VARIABLES ##### \\
-	private AudioPlayer player;
-	private CopyOnWriteArrayList<LoadedTrack> queue;
-
-	private AudioSendHandler sendHandler;
-
-	private boolean isPlaying = false;
-	private boolean isStopped = true;
-
-	private TextChannel lastTextChannel;
-
-	// Number of songs played in a session
-	private int numberOfSongs = 0;
+	// Core
+	private AudioSendManager player;
+	private SpeakerStatus status;
 
 	// The currently playing song
 	private LoadedTrack currentTrack;
+	
+	// Components
+	private TrackList trackList;
+	
+	// Guild Context
+	private CometGuildContext context;
 
-	// Shuffling related
-	private boolean isShuffling = false;
-	private Random shufflingRandom = new Random();
-
-	// ##### VARIABLES ##### \\
-
-	// ##### CONSTRUCTOR ##### \\
-	public MusicSpeaker() {
-		player = MusicPlayer.generatePlayer();
-		player.setVolume(100);
-		player.setFrameBufferDuration(120);
-		player.addListener(this);
-
-		queue = new CopyOnWriteArrayList<LoadedTrack>();
-
-		sendHandler = new AudioPlayerSendHandler(player);
-	}
-	// ##### CONSTRUCTOR ##### \\
-
-	// ##### PLAY ##### \\
-	public void play(TextChannel channel, String dj, String link) {
-		addToQueue(channel, dj, link);
-		play();
+	public MusicSpeaker(CometGuildContext context) {
+		player = new AudioSendManager(this);
+		trackList = new TrackList();
+		
+		this.context = context;
 	}
 
 	public void play() {
-		if (isPlaying) return;
-
+		if (status == SpeakerStatus.Playing) {
+			return;
+		}
+		
 		if (player.isPaused()) {
-			player.setPaused(false);
-			isPlaying = true;
+			TextSender.sendThenWait(context.getBotTextChannel(),"Continuing Playback");
+			player.unpause();
+			status = SpeakerStatus.Playing;
 			return;
 		}
 
-		if (queue.size() == 0) {
-			Log.printErr("Error nothing in queue!");
+		if (!trackList.hasSongs()) {
+			TextSender.send(context.getBotTextChannel(), "You must add item's to the queue first!");
 			return;
 		}
 
-		LoadedTrack loadedTrack = getTrackFromQueue();
+		LoadedTrack loadedTrack = trackList.getTrackFromQueue();
 
 		// Set Current Track
 		currentTrack = loadedTrack;
 
 		AudioTrack track = loadedTrack.getTrack();
 
-		player.startTrack(track, true);
-		numberOfSongs++;
-		isPlaying = true;
-		isStopped = false;
+		player.startTrack(track);
+		status = SpeakerStatus.Playing;
 
 		// Send Message
 		Log.print("Playing " + track);
-		Play.sendPlayMessage(this, lastTextChannel);
+		sendNowPlaying();
 	}
-	// ##### PLAY ##### \\
-
-	// ##### CONTINUE/SKIP PLAYBACK ##### \\
+	
+	public void playSongAgain(TextChannel channel) {
+		String[] links = new String[] {currentTrack.getLink()};
+		
+		addPlay(links, channel, currentTrack.getDJ());
+	}
+	
+	public void toggleShuffle() {
+		trackList.toggleShuffle(context.getBotTextChannel());
+	}
+	
 	public void skip() {
-		stop();
+		player.stopTrack();
 		play();
 	}
 
 	@Override
 	public void onTrackEnd(AudioPlayer player, AudioTrack track, AudioTrackEndReason endReason) {
 		// Only start the next track if the end reason is suitable for it (FINISHED or LOAD_FAILED)
-		isPlaying = false;
+		context.getDynamicMessages().completeNowPlayingMessagesSong();
+		
+		status = SpeakerStatus.Waiting;
+		
 		if (endReason.mayStartNext) {
-			if (queue.size() > 0) {
-				play();
-			} else {
-				// No Songs in Queue
-				TextChannelHandler.sendThenWait(lastTextChannel, "No more songs in queue");
-			}
+			play();
+			return;
 		}
 	}
-	// ##### CONTINUE/SKIP PLAYBACK ##### \\
-
-	// ##### QUEUE ##### \\
-	public int addToQueue(TextChannel channel, String dj, String[] links) {
-		for (String link : links) {
-			addToQueue(channel, dj, link);
-		}
-		return queue.size();
-	}
-
-	public int addToQueue(TextChannel channel, String dj, String link) {
-		MusicPlayer.getPlayerManager().loadItemOrdered(channel, link, new AudioLoadResultHandler() {
-			@Override
-			public void trackLoaded(AudioTrack audioTrack) {
-				LoadedTrack track = new LoadedTrack(audioTrack, dj, link);
-				queue.add(track);
-				Log.print("Added song " + track.summary());
-			}
-
-			@Override
-			public void playlistLoaded(AudioPlaylist audioPlaylist) {
-				for (AudioTrack audioTrack : audioPlaylist.getTracks()) {
-					LoadedTrack track = new LoadedTrack(audioTrack, dj, link);
-					queue.add(track);
-					Log.print("Added song " + track.summary());
-				}
-			}
-
-			@Override
-			public void noMatches() {
-				TextChannelHandler.sendThenWait(channel, "Failed to load song '" + link + "', no matches avaliable.");
-			}
-
-			@Override
-			public void loadFailed(FriendlyException e) {
-				Log.printErr(e);
-				TextChannelHandler.sendThenWait(channel, "Failed to load song '" + link + "', load Failed!");
-			}
-		});
-
-		return queue.size();
-	}
-
+	
 	public void clearSongs() {
-		queue.clear();
-		numberOfSongs = 0;
+		trackList.clear();
 	}
-
-	private LoadedTrack getTrackFromQueue() {
-		if (isShuffling) {
-
-			int i = shufflingRandom.nextInt(queue.size());
-			LoadedTrack loadedTrack = queue.get(i);
-			queue.remove(i);
-			return loadedTrack;
-
-		} else {
-
-			LoadedTrack loadedTrack = queue.get(0);
-			queue.remove(0);
-			return loadedTrack;
-
-		}
-	}
-	// ##### QUEUE ##### \\
-
-	// ##### STATE CHANGE ##### \\
+	
 	public void pause() {
 		if (player.isPaused()) {
-			player.setPaused(false);
-			isPlaying = true;
+			TextSender.send(context.getBotTextChannel(), "Resuming playback");
+			player.unpause();
+			status = SpeakerStatus.Playing;
 		} else {
-			player.setPaused(true);
-			isPlaying = false;
+			TextSender.send(context.getBotTextChannel(), "Pausing");
+			player.pause();
+			status = SpeakerStatus.Paused;
 		}
 	}
-
+	
 	public void stop() {
 		player.stopTrack();
 		clearSongs();
-		isPlaying = false;
-		isStopped = true;
+		status = SpeakerStatus.Waiting;
+	}
+	
+	public void sendNowPlaying() {
+		if (status == SpeakerStatus.Playing) {
+			context.getDynamicMessages().sendNowPlayingMessage();
+		} else {
+			TextSender.sendThenWait(context.getBotTextChannel(), "Not currently playing a song");
+		}
 	}
 
-	public boolean toggleShuffle() {
-		// Switch
-		if (isShuffling) isShuffling = false;
-		else isShuffling = true;
-
-		// Return
-		return isShuffling;
+	public void connect(Guild guild, VoiceChannel voiceChannel, TextChannel textChannel) {
+		guild.getAudioManager().openAudioConnection(voiceChannel);
+		guild.getAudioManager().setSendingHandler(player.getSendHandler());
+		
+		TextSender.send(textChannel, "On my way!");
 	}
-	// ##### STATE CHANGE ##### \\
+	
+	public String getNowPlayingMessageText() {
+		int current = trackList.songsPlayed();
+		int total = trackList.size()+current;
+		String currentSong = "**"+currentTrack.getTrack().getInfo().title+"**";
+		String messageText = "> Now Playing ("+current+"/"+total+") " + currentSong;
+		return messageText;
+	}
 
-	// ##### MESSAGE ##### \\
-	public void sendLeaveMessage() {
-		TextChannelHandler.sendThenWait(lastTextChannel, "Left channel, guess the party is over.");
+	public void tick() {
+		if (status == SpeakerStatus.Waiting) return;
+		
+		context.getDynamicMessages().updateNowPlayingState();
+	}
+	
+	public void addPlay(MessageReceivedEvent event) {
+		// Get Links
+		String[] args = event.getMessage().getContentRaw().split(" ");
+		String[] links = Arrays.copyOfRange(args, 1, args.length);
+		
+		addPlay(links, event.getTextChannel(), event.getAuthor().getName());
+	}
+	
+	public void addPlay(String[] links, TextChannel channel, String dj) {
+		// Add First one (This will block for that one link)
+		trackList.addToQueue(channel, dj, links, true);
+		
+		// Check if no links where given, when song is already playing
+		if (status == SpeakerStatus.Playing && links.length == 0) {
+			TextSender.sendThenWait(context.getBotTextChannel(),"Already Playing a track");
+			return;
+		}
+		
+		// Play
+		play();
+		
+		// Let user know number of songs in queue, if added
+		if (trackList.size() == 1 && links.length != 0) {
+			TextSender.sendThenWait(channel,"There is now " + trackList.size() + " song in the queue!");
+		} else if (trackList.size() > 1 && links.length != 0) {
+			TextSender.sendThenWait(channel,"There are now " + trackList.size() + " songs in the queue!");
+		}
+	}
+
+	public void leave() {
+		TextSender.sendThenWait(context.getBotTextChannel(), "Left channel, guess the party is over.");
+		clearSongs();
 		stop();
 	}
-	// ##### MESSAGE ##### \\
 
-	// ##### GETTERS ##### \\
-	public int getQueueSize() {
-		return queue.size();
+	public LoadedTrack getCurrentTrack() {
+		return currentTrack;
 	}
 
-	public boolean hasSongsInQueue() {
-		return queue.size() > 0;
+	public String getCurrentTimestamp() {
+		return player.getCurrentTimestamp();
 	}
 
-	public AudioSendHandler getSendHandler() {
-		return sendHandler;
+	public long getQueueTimeLength() {
+		return trackList.getQueueTimeLength();
 	}
-
-	public String getCurrentSong() {
-		return "**"+currentTrack.getTrack().getInfo().title+"** by **"+currentTrack.getDJ()+"**";
+	
+	public SpeakerStatus getStatus() {
+		return status;
 	}
-
-	public boolean isPlaying() {
-		return isPlaying;
+	
+	public TrackList getTrackList() {
+		return trackList;
 	}
-
-	public int getSongsPlayed() {
-		return numberOfSongs;
-	}
-
-	public void updateLastTextChannel(TextChannel channel) {
-		this.lastTextChannel = channel;
-	}
-
-	public boolean isStopped() {
-		return isStopped;
-	}
-	// ##### GETTERS ##### \\
 }

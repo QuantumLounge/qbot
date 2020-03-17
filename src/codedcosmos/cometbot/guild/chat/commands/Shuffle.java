@@ -14,13 +14,17 @@
 
 package codedcosmos.cometbot.guild.chat.commands;
 
-import codedcosmos.cometbot.guild.chat.Command;
-import codedcosmos.cometbot.guild.chat.channel.TextChannelHandler;
-import codedcosmos.cometbot.guild.context.GuildContext;
-import codedcosmos.cometbot.guild.context.Guilds;
+import codedcosmos.cometbot.core.CometBot;
+import codedcosmos.cometbot.guild.context.CometGuildContext;
+import codedcosmos.hyperdiscord.command.Command;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 
 public class Shuffle implements Command {
+	@Override
+	public String getName() {
+		return "shuffle";
+	}
+	
 	@Override
 	public String getHelp() {
 		return "Toggles Shuffle for the current queue.";
@@ -33,13 +37,11 @@ public class Shuffle implements Command {
 
 	@Override
 	public void run(MessageReceivedEvent event) throws Exception {
-		GuildContext context = Guilds.getContextBy(event.getGuild());
-		boolean isShuffling = context.getSpeaker().toggleShuffle();
+		CometGuildContext context = CometBot.guilds.getContextBy(event.getGuild());
+		context.getSpeaker().toggleShuffle();
+	}
 
-		if (isShuffling) {
-			TextChannelHandler.send(event,"Shuffling Enabled");
-		} else {
-			TextChannelHandler.send(event,"Shuffling Disabled");
-		}
+	public String[] getAliases() {
+		return new String[] {"MixItUp"};
 	}
 }

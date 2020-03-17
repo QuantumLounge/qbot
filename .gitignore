@@ -6,3 +6,5 @@ funideas.txt
 lib/
 upload.sh
 out/
+run/
+.gradle

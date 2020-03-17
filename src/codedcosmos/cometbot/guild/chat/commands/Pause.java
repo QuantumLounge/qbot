@@ -14,17 +14,23 @@
 
 package codedcosmos.cometbot.guild.chat.commands;
 
-import codedcosmos.cometbot.guild.chat.Command;
-import codedcosmos.cometbot.guild.chat.channel.TextChannelHandler;
-import codedcosmos.cometbot.guild.context.GuildContext;
-import codedcosmos.cometbot.guild.context.Guilds;
+import codedcosmos.cometbot.core.CometBot;
+import codedcosmos.cometbot.guild.context.CometGuildContext;
+import codedcosmos.hyperdiscord.chat.TextSender;
+import codedcosmos.hyperdiscord.command.Command;
+import net.dv8tion.jda.api.events.Event;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 
 public class Pause implements Command {
-
+	
+	@Override
+	public String getName() {
+		return "pause";
+	}
+	
 	@Override
 	public String getHelp() {
-		return "Pauses the audio (Doesn't toggle)";
+		return "Pauses the audio";
 	}
 
 	@Override
@@ -34,9 +40,11 @@ public class Pause implements Command {
 
 	@Override
 	public void run(MessageReceivedEvent event) throws Exception {
-		TextChannelHandler.send(event,"Pausing");
-
-		GuildContext context = Guilds.getContextBy(event.getGuild());
+		CometGuildContext context = CometBot.guilds.getContextBy(event.getGuild());
 		context.getSpeaker().pause();
+	}
+
+	public String[] getAliases() {
+		return new String[] {"Halt"};
 	}
 }

@@ -14,14 +14,11 @@
 
 package codedcosmos.cometbot.event.guild;
 
-import codedcosmos.cometbot.guild.context.GuildContext;
-import codedcosmos.cometbot.guild.context.Guilds;
-import net.dv8tion.jda.api.events.guild.GuildAvailableEvent;
-import net.dv8tion.jda.api.events.guild.GuildJoinEvent;
+import codedcosmos.cometbot.core.CometBot;
 import net.dv8tion.jda.api.events.guild.GuildReadyEvent;
 
 public class GuildReadyEventHandler {
 	public static void onEvent(GuildReadyEvent event) {
-		Guilds.addGuild(event.getGuild());
+		CometBot.guilds.addGuild(event.getGuild());
 	}
 }

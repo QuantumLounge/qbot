@@ -1,0 +1,4 @@
+rootProject.name = 'Cometbot'
+
+include ':hyperdiscord'
+project( ':hyperdiscord' ).projectDir = new File('./HyperDiscord')

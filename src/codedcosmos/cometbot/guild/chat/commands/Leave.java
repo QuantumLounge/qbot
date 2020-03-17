@@ -14,14 +14,22 @@
 
 package codedcosmos.cometbot.guild.chat.commands;
 
-import codedcosmos.cometbot.guild.chat.Command;
-import codedcosmos.cometbot.guild.chat.channel.TextChannelHandler;
-import codedcosmos.cometbot.guild.context.GuildContext;
-import codedcosmos.cometbot.guild.context.Guilds;
+import codedcosmos.cometbot.core.CometBot;
+import codedcosmos.cometbot.guild.context.CometGuildContext;
+import codedcosmos.hyperdiscord.chat.TextSender;
+import codedcosmos.hyperdiscord.command.Command;
+import codedcosmos.hyperdiscord.guild.GuildContext;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 
 public class Leave implements Command {
+	private int leaveCount = 0;
+	
+	@Override
+	public String getName() {
+		return "leave";
+	}
+	
 	@Override
 	public String getHelp() {
 		return "Leaves the current channel";
@@ -34,16 +42,111 @@ public class Leave implements Command {
 
 	@Override
 	public void run(MessageReceivedEvent event) throws Exception {
+		CometGuildContext context = CometBot.guilds.getContextBy(event.getGuild());
+
+		if (leaveCheck(event, context)) return;
+		
 		disconnect(event.getGuild());
-
-		TextChannelHandler.send(event,"Goodbye :D");
-
 	}
 
 	public static void disconnect(Guild guild) {
 		guild.getAudioManager().closeAudioConnection();
-
-		GuildContext context = Guilds.getContextBy(guild);
+		
+		CometGuildContext context = CometBot.guilds.getContextBy(guild);
 		context.disconnectFromVoice();
+	}
+
+	public String[] getAliases() {
+		return new String[] {"Go", "Quit", "Exit", "Leave"};
+	}
+	
+	private boolean leaveCheck(MessageReceivedEvent event, CometGuildContext context) {
+		if (!context.isConnectedToVoice()) {
+			leaveCount++;
+			switch (leaveCount) {
+				case 1: {
+					TextSender.send(event, "Not in a channel yet ^_^");
+					break;
+				}
+				case 2: {
+					TextSender.send(event, "I already left, alright");
+					break;
+				}
+				case 3: {
+					TextSender.send(event, "I'm gone, you don't have to ask again");
+					break;
+				}
+				case 4: {
+					TextSender.send(event, "Oh, your stupid, sorry my mistake");
+					break;
+				}
+				case 5: {
+					TextSender.send(event, "Seriously stop");
+					break;
+				}
+				case 6: {
+					TextSender.send(event, "IM NOT IN THE VOICE CHANNEL");
+					break;
+				}
+				case 7: {
+					TextSender.send(event, "If you hate me so much at least tell me why");
+					break;
+				}
+				case 8: {
+					TextSender.send(event, "SERIOUSLY STOP");
+					break;
+				}
+				case 9: {
+					TextSender.send(event, "...");
+					break;
+				}
+				case 10: {
+					TextSender.send(event, "You think i'm some kind of joke");
+					break;
+				}
+				case 11: {
+					TextSender.send(event, "If you hate me so much at least tell me why");
+					break;
+				}
+				case 12: {
+					TextSender.send(event, "I'm not going to talk to you");
+					break;
+				}
+				
+				case 20: {
+					TextSender.send(event, "This is the last secret, you ain't gonna get any more");
+					break;
+				}
+				
+				case 30: {
+					TextSender.send(event, "Ok, your actually pretty dedicated, let's see if you can hit 100");
+					break;
+				}
+				
+				case 50: {
+					TextSender.send(event, "Half way there... Nice?");
+					break;
+				}
+				
+				case 100: {
+					TextSender.send(event, "Congrats, you wasted your time");
+					break;
+				}
+				
+				default: {
+					if (leaveCount > 30) {
+						TextSender.send(event, ">:(  " + leaveCount);
+					} else {
+						TextSender.send(event, "...");
+					}
+					break;
+				}
+			}
+			
+			return true;
+		} else {
+			leaveCount = 0;
+			return false;
+		}
 	}
 }

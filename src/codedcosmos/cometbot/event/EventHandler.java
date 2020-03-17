@@ -14,18 +14,15 @@
 
 package codedcosmos.cometbot.event;
 
+import codedcosmos.cometbot.core.CometBot;
 import codedcosmos.cometbot.event.guild.GuildReadyEventHandler;
 import codedcosmos.cometbot.event.guild.GuildVoiceConnectStatus;
-import codedcosmos.cometbot.utils.log.Log;
+import codedcosmos.hyperdiscord.utils.debug.Log;
 import net.dv8tion.jda.api.events.DisconnectEvent;
 import net.dv8tion.jda.api.events.ReadyEvent;
 import net.dv8tion.jda.api.events.ReconnectedEvent;
-import net.dv8tion.jda.api.events.guild.GuildAvailableEvent;
-import net.dv8tion.jda.api.events.guild.GuildJoinEvent;
 import net.dv8tion.jda.api.events.guild.GuildReadyEvent;
-import net.dv8tion.jda.api.events.guild.voice.GuildVoiceJoinEvent;
-import net.dv8tion.jda.api.events.guild.voice.GuildVoiceLeaveEvent;
-import net.dv8tion.jda.api.events.guild.voice.GuildVoiceMoveEvent;
+import net.dv8tion.jda.api.events.guild.voice.*;
 import net.dv8tion.jda.api.events.message.guild.react.GuildMessageReactionAddEvent;
 import net.dv8tion.jda.api.events.message.guild.react.GuildMessageReactionRemoveEvent;
 import net.dv8tion.jda.api.hooks.EventListener;
@@ -66,11 +63,11 @@ public class EventHandler implements EventListener {
 
 		// Emote
 		else if (event instanceof GuildMessageReactionAddEvent) {
-			Log.print("GroupMessageReactionAddEvent Event");
+			CometBot.guilds.sendReactionAddEvent((GuildMessageReactionAddEvent)event);
 		}
 
 		else if (event instanceof GuildMessageReactionRemoveEvent) {
-			Log.print("GroupMessageReactionRemoveEvent Event");
+			CometBot.guilds.sendReactionRemoveEvent((GuildMessageReactionRemoveEvent)event);
 		}
 	}
 

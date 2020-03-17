@@ -14,126 +14,85 @@
 
 package codedcosmos.cometbot.core;
 
-import codedcosmos.cometbot.guild.chat.ChatListener;
-import codedcosmos.cometbot.guild.chat.Command;
-import codedcosmos.cometbot.guild.chat.commands.*;
 import codedcosmos.cometbot.event.EventHandler;
-import codedcosmos.cometbot.guild.context.Guilds;
-import codedcosmos.cometbot.guild.voice.MusicPlayer;
-import codedcosmos.cometbot.utils.log.Log;
+import codedcosmos.cometbot.guild.chat.messages.CometCommandListener;
+import codedcosmos.cometbot.guild.context.CometGuildContext;
+import codedcosmos.cometbot.guild.context.CometGuildHandler;
+import codedcosmos.cometbot.guild.voice.lava.MusicPlayer;
+import codedcosmos.hyperdiscord.bot.ArgsParser;
+import codedcosmos.hyperdiscord.guild.GuildHandler;
+import codedcosmos.hyperdiscord.utils.debug.Log;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Activity;
-import net.dv8tion.jda.api.entities.Guild;
 
 import javax.security.auth.login.LoginException;
-import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Random;
 
 public class CometBot {
 
 	// Version
-	public static final String VERSION = "0.2";
+	public static final String VERSION = "1.0";
 
+	// Guilds
+	public static GuildHandler<CometGuildContext> guilds;
+	
 	// Commands
-	public static ArrayList<Command> commands;
-
-	// Configurable by arguments
-
-	// -token
-	// Sets the token key for the bot
-	private static String TOKEN;
-
-	// -cachesize
-	// Sets cache size in megabytes
-	private static int CACHE_SIZE = 5000;
+	public static CometCommandListener commands;
+	
+	// Math
+	public static Random random = new Random();
 
 	public static void main(String[] args) {
 		Log.print("Starting Comet Bot");
 
-		HashMap<String, String> argMap = new HashMap<String, String>();
+		HashMap<String, String> mappedArgs = ArgsParser.parseArgs(args, "token");
 
-		Log.print("Extracting arguments");
-		for (int i = 0; i < args.length; i++) {
-			if (i + 1 >= args.length) break;
+		String token = mappedArgs.get("token");
+		
+		// Setup guilds
+		guilds = new CometGuildHandler();
 
-			String arg1 = args[i];
-			String arg2 = args[i + 1];
-
-			if (arg1.startsWith("-") && !arg2.startsWith("-")) {
-				// Add them
-				argMap.put(arg1.substring(1), arg2);
-			}
-		}
-
-		Log.print("Applying Launch Arguments");
-
-		String parse = "null";
-
-		try {
-			if (argMap.containsKey("token")) {
-				// Set token
-				parse = "token";
-				TOKEN = argMap.get("token");
-			} else {
-				// Default
-				TOKEN = "null";
-			}
-			Log.print(argMap.containsKey("cache_size"));
-			if (argMap.containsKey("cache_size")) {
-				// Set
-				parse = "cache_size";
-				CACHE_SIZE = Integer.parseInt(argMap.get("cache_size"));
-			} else {
-				// Default
-				CACHE_SIZE = 5000;
-			}
-		} catch (NumberFormatException e) {
-			Log.printErr("Argument '" + parse + "' failed to parse correctly");
-			Log.printErr(e);
-		}
-
-		if (TOKEN == null || TOKEN.equals("null")) {
-			Log.printErr("Token is null, start program with -token INSERT_TOKEN_HERE");
-			Log.printErr("Program will now stop");
-			return;
-		}
-
-		// Load Commands
-		Log.print("Loading commands");
-		commands = new ArrayList<Command>();
-
-		// Get Commands
-		commands.add(new ClearQueue());
-		commands.add(new Help());
-		commands.add(new Join());
-		commands.add(new Leave());
-		commands.add(new Pause());
-		commands.add(new Ping());
-		commands.add(new Play());
-		commands.add(new Shuffle());
-		commands.add(new Skip());
-		commands.add(new Stop());
-		commands.add(new Version());
-
-		Log.print("Found " + commands.size() + " commands!");
-
-		// Prepare guilds
-		Guilds.init();
-		Log.print("Prepared Guilds");
+		// Commands
+		commands = new CometCommandListener();
 
 		// Prepare music player
 		MusicPlayer.init();
 		Log.print("Prepared Music Player");
 
 		try {
-			JDABuilder builder = new JDABuilder(TOKEN);
+			JDABuilder builder = new JDABuilder(token);
 
 			builder.setActivity(Activity.listening(".help"));
-			builder.addEventListeners(new ChatListener());
+			builder.addEventListeners(commands);
 			builder.addEventListeners(new EventHandler());
 
 			JDA jda = builder.build();
+
+			ExecutorThread thread = new ExecutorThread("TickingThread", 10) {
+				@Override
+				public void onStart() {
+					try {
+						Thread.sleep(1000);
+					} catch (InterruptedException e) {
+						Log.printErr(e);
+					}
+				}
+
+				@Override
+				public void onStop() {
+
+				}
+
+				@Override
+				public void run() {
+					for (CometGuildContext guild : guilds.getGuilds()) {
+						guild.getSpeaker().tick();
+					}
+				}
+			};
+			thread.start();
 		} catch (LoginException e) {
 			Log.printErr(e);
 		}

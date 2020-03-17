@@ -14,22 +14,27 @@
 
 package codedcosmos.cometbot.guild.chat.commands;
 
-import codedcosmos.cometbot.guild.chat.Command;
-import codedcosmos.cometbot.guild.chat.channel.TextChannelHandler;
-import codedcosmos.cometbot.guild.context.GuildContext;
-import codedcosmos.cometbot.guild.context.Guilds;
-import codedcosmos.cometbot.utils.log.Log;
+import codedcosmos.cometbot.core.CometBot;
+import codedcosmos.cometbot.fun.BotMessages;
+import codedcosmos.cometbot.guild.context.CometGuildContext;
+import codedcosmos.hyperdiscord.chat.TextSender;
+import codedcosmos.hyperdiscord.command.Command;
+import codedcosmos.hyperdiscord.utils.debug.Log;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.VoiceChannel;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
-import net.dv8tion.jda.api.managers.AudioManager;
 
 import java.util.Iterator;
 import java.util.List;
 
 public class Join implements Command {
+	@Override
+	public String getName() {
+		return "join";
+	}
+	
 	@Override
 	public String getHelp() {
 		return "Asks the bot to join your current voice channel";
@@ -42,10 +47,10 @@ public class Join implements Command {
 
 	@Override
 	public void run(MessageReceivedEvent event) throws Exception{
-		runCommand(event);
+		runCommand(event, true);
 	}
 
-	public static boolean runCommand(MessageReceivedEvent event) throws Exception {
+	public static boolean runCommand(MessageReceivedEvent event, boolean fromJoin) throws Exception {
 		User author = event.getAuthor();
 		Guild guild = event.getGuild();
 
@@ -66,27 +71,23 @@ public class Join implements Command {
 			if (userInChannel) {
 				// Check size
 				if (channel.getMembers().size() == channel.getUserLimit()) {
-					TextChannelHandler.send(event, "Sorry, there doesn't seem to be any room there.");
+					TextSender.send(event, BotMessages.joinButNoRoom.get());
 					return false;
 				}
 
 				// Get Context
-				GuildContext context = Guilds.getContextBy(guild);
-
-				// Update Last Text Channel
-				context.getSpeaker().updateLastTextChannel(event.getTextChannel());
+				CometGuildContext context = CometBot.guilds.getContextBy(guild);
 
 				// Ensure it's not already connected
 				if (context.isConnectedToVoice()) {
-					Log.print("Bot already Connected");
+					if (fromJoin) {
+						TextSender.send(event, "I have already joined");
+					}
 					return true;
 				}
 
 				// Everything is correct, add to channel
-				guild.getAudioManager().openAudioConnection(channel);
-				guild.getAudioManager().setSendingHandler(context.getSpeaker().getSendHandler());
-
-				TextChannelHandler.send(event, "On my way!");
+				context.getSpeaker().connect(guild, channel, event.getTextChannel());
 
 				context.setVoiceChannel(channel);
 
@@ -95,7 +96,11 @@ public class Join implements Command {
 		}
 
 		// User isn't in any channels
-		TextChannelHandler.send(event, "You must join a voice channel to use this command!");
+		TextSender.send(event, "You must join a voice channel to use this command!");
 		return false;
+	}
+
+	public String[] getAliases() {
+		return new String[] {"Accompany", "Voice", "joinus"};
 	}
 }

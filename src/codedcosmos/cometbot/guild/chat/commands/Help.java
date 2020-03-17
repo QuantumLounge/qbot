@@ -14,79 +14,50 @@
 
 package codedcosmos.cometbot.guild.chat.commands;
 
-import codedcosmos.cometbot.guild.chat.Command;
-import codedcosmos.cometbot.guild.chat.channel.TextChannelHandler;
 import codedcosmos.cometbot.core.CometBot;
+import codedcosmos.cometbot.guild.context.CometGuildContext;
+import codedcosmos.hyperdiscord.chat.TextSender;
+import codedcosmos.hyperdiscord.command.Command;
+import codedcosmos.hyperdiscord.command.prebuilt.HelpMessageGenerator;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 
+import java.util.ArrayList;
+
 public class Help implements Command {
-
-	private static final int COMMANDS_PER_PAGE = 4;
-
+	
+	public static final int COMMANDS_PER_PAGE = 9;
+	
+	@Override
+	public String getName() {
+		return "help";
+	}
+	
 	@Override
 	public String getHelp() {
-		return "Gets help from programs";
+		return "Get's the help info from commands";
 	}
-
+	
 	@Override
 	public String[] getStynax() {
 		return new String[] {"", "[0-9]"};
 	}
-
+	
 	@Override
 	public void run(MessageReceivedEvent event) throws Exception {
-		int maxPages = getMaxPages();
-		int page = extractPage(event.getMessage().getContentDisplay(), maxPages);
-
-		String helpMessage = "";
-
-		helpMessage += "\n";
-		helpMessage += "**Help  -  page " + page + "/" + maxPages + "**";
-		helpMessage += "\n\n";
-
-		int index = (page-1) * COMMANDS_PER_PAGE;
-
-		for (int i = index; i < index+4 && i < CometBot.commands.size(); i++) {
-			Command command = CometBot.commands.get(i);
-			String name = command.getClass().getSimpleName().toLowerCase();
-
-			helpMessage += "**"+name+"**:\n";
-			helpMessage += command.getHelp()+"\n";
-
-			helpMessage += "**Usage:\n**";
-			for (String usage : command.getStynax()) {
-				helpMessage += "-" + name + " " + usage + "\n";
-			}
-
-			helpMessage += "\n";
+		int argsLength = event.getMessage().getContentDisplay().split(" ").length-1;
+		if (argsLength > 5) {
+			TextSender.send(event, "Seriously?? " + argsLength + " arguments? Am I a joke to you...?\n" +
+					"What where you expecting to happen?");
+			
+			return;
 		}
-
-		TextChannelHandler.send(event, helpMessage);
+		
+		CometGuildContext context = CometBot.guilds.getContextBy(event);
+		context.getDynamicMessages().sendHelpMessage(event.getMessage().getContentDisplay());
 	}
-
-	private int getMaxPages() {
-		float commands = CometBot.commands.size();
-		float commandsPerPage = COMMANDS_PER_PAGE;
-
-		int total = Math.max((int)(commands/commandsPerPage), 1);
-
-		return total;
-	}
-
-	private int extractPage(String message, int max) {
-		String[] lines = message.split(" ");
-		if (lines.length < 2) return 1;
-
-		try {
-			int page = Integer.parseInt(lines[1]);
-			if (page <= 0) return 1;
-			if (page > max) return max;
-
-			return page;
-		} catch (NumberFormatException e) {
-			// Do nothing
-		}
-
-		return 1;
+	
+	@Override
+	public String[] getAliases() {
+		return new String[] {"info", "huh", "what", "Advice", "Support", "Aid", "Guidance"};
 	}
 }
