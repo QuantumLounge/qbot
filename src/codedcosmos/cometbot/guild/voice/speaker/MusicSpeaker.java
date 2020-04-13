@@ -50,38 +50,53 @@ public class MusicSpeaker extends AudioEventAdapter {
 		trackList = new TrackList();
 		
 		this.context = context;
+		
+		status = SpeakerStatus.Waiting;
 	}
 
-	public void play() {
-		if (status == SpeakerStatus.Playing) {
-			return;
-		}
-		
-		if (player.isPaused()) {
-			TextSender.sendThenWait(context.getBotTextChannel(),"Continuing Playback");
-			player.unpause();
+	public void play(boolean fromUser) {
+		try {
+			
+			if (status == SpeakerStatus.Playing) {
+				return;
+			}
+			
+			if (player.isPaused()) {
+				TextSender.sendThenWait(context.getBotTextChannel(), "Continuing Playback");
+				player.unpause();
+				status = SpeakerStatus.Playing;
+				return;
+			}
+			
+			if (!trackList.hasSongs()) {
+				if (fromUser) {
+					TextSender.send(context.getBotTextChannel(), "You must add item's to the queue first!");
+					return;
+				} else {
+					TextSender.send(context.getBotTextChannel(), "Queue is empty, no more songs to play");
+					return;
+				}
+			}
+			
+			LoadedTrack loadedTrack = trackList.getTrackFromQueue();
+			
+			// Set Current Track
+			currentTrack = loadedTrack;
+			
+			AudioTrack track = loadedTrack.getTrack();
+			
+			player.startTrack(track);
 			status = SpeakerStatus.Playing;
-			return;
+			
+			// Send Message
+			Log.print("Playing " + track);
+			sendNowPlaying();
+			
+		} catch (Exception e) {
+			stop();
+			Log.printErr(e);
+			TextSender.send(context.getBotTextChannel(), "Failed to play song:\nReason: "+e.getMessage());
 		}
-
-		if (!trackList.hasSongs()) {
-			TextSender.send(context.getBotTextChannel(), "You must add item's to the queue first!");
-			return;
-		}
-
-		LoadedTrack loadedTrack = trackList.getTrackFromQueue();
-
-		// Set Current Track
-		currentTrack = loadedTrack;
-
-		AudioTrack track = loadedTrack.getTrack();
-
-		player.startTrack(track);
-		status = SpeakerStatus.Playing;
-
-		// Send Message
-		Log.print("Playing " + track);
-		sendNowPlaying();
 	}
 	
 	public void playSongAgain(TextChannel channel) {
@@ -96,7 +111,7 @@ public class MusicSpeaker extends AudioEventAdapter {
 	
 	public void skip() {
 		player.stopTrack();
-		play();
+		play(true);
 	}
 
 	@Override
@@ -107,7 +122,7 @@ public class MusicSpeaker extends AudioEventAdapter {
 		status = SpeakerStatus.Waiting;
 		
 		if (endReason.mayStartNext) {
-			play();
+			play(false);
 			return;
 		}
 	}
@@ -117,7 +132,9 @@ public class MusicSpeaker extends AudioEventAdapter {
 	}
 	
 	public void pause() {
-		if (player.isPaused()) {
+		if (status == SpeakerStatus.Waiting) {
+			TextSender.send(context.getBotTextChannel(), "No track currently playing, unable to pause");
+		} else if (player.isPaused()) {
 			TextSender.send(context.getBotTextChannel(), "Resuming playback");
 			player.unpause();
 			status = SpeakerStatus.Playing;
@@ -129,9 +146,15 @@ public class MusicSpeaker extends AudioEventAdapter {
 	}
 	
 	public void stop() {
+		if (status == SpeakerStatus.Waiting) {
+			TextSender.sendThenWait(context.getBotTextChannel(), "Unable to stop track, Not currently playing a song");
+			return;
+		}
+		
 		player.stopTrack();
 		clearSongs();
 		status = SpeakerStatus.Waiting;
+		TextSender.sendThenWait(context.getBotTextChannel(), "Stopping track");
 	}
 	
 	public void sendNowPlaying() {
@@ -158,9 +181,9 @@ public class MusicSpeaker extends AudioEventAdapter {
 	}
 
 	public void tick() {
-		if (status == SpeakerStatus.Waiting) return;
-		
-		context.getDynamicMessages().updateNowPlayingState();
+		if (status != SpeakerStatus.Waiting) {
+			context.getDynamicMessages().updateNowPlayingState();
+		}
 	}
 	
 	public void addPlay(MessageReceivedEvent event) {
@@ -182,7 +205,7 @@ public class MusicSpeaker extends AudioEventAdapter {
 		}
 		
 		// Play
-		play();
+		play(true);
 		
 		// Let user know number of songs in queue, if added
 		if (trackList.size() == 1 && links.length != 0) {

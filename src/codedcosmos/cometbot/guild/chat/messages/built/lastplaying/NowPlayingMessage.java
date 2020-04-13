@@ -97,6 +97,7 @@ public class NowPlayingMessage extends DynamicMessage {
 		skip = new ReactionBox(message, UnicodeReactions.NEXT);
 		like = new ReactionBox(message, UnicodeReactions.HEART);
 		
+		// Update sent
 		sent = true;
 	}
 	
@@ -154,7 +155,7 @@ public class NowPlayingMessage extends DynamicMessage {
 		CometGuildContext context = CometBot.guilds.getContextBy(event.getGuild());
 		
 		if (!pause.isSelected()) {
-			context.getSpeaker().play();
+			context.getSpeaker().play(true);
 		}
 		if (!stop.isSelected()) {
 		

@@ -47,6 +47,6 @@ public class Play implements Command {
 	}
 
 	public String[] getAliases() {
-		return new String[] {"Begin", "Start"};
+		return new String[] {"Begin", "Start", "resume"};
 	}
 }

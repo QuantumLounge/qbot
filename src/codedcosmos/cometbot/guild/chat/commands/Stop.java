@@ -38,8 +38,6 @@ public class Stop implements Command {
 
 	@Override
 	public void run(MessageReceivedEvent event) throws Exception {
-		TextSender.send(event,"Stopping Track!");
-		
 		CometGuildContext context = CometBot.guilds.getContextBy(event.getGuild());
 		context.getSpeaker().stop();
 	}
