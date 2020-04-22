@@ -14,6 +14,7 @@
 
 package codedcosmos.cometbot.guild.voice.track;
 
+import com.sedmelluq.discord.lavaplayer.track.AudioPlaylist;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 
 public class LoadedTrack {

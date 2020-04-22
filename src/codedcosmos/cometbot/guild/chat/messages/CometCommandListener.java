@@ -22,7 +22,7 @@ import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 
 public class CometCommandListener extends CommandListener<CometGuildContext> {
 	public CometCommandListener() {
-		super("codedcosmos.cometbot.guild.chat.commands", ".");
+		super("codedcosmos.cometbot.guild.commands", ".");
 	}
 	
 	@Override

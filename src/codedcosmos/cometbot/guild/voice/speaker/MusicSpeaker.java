@@ -14,6 +14,7 @@
 
 package codedcosmos.cometbot.guild.voice.speaker;
 
+import codedcosmos.cometbot.guild.commands.Join;
 import codedcosmos.cometbot.guild.context.CometGuildContext;
 import codedcosmos.cometbot.guild.voice.speaker.components.AudioSendManager;
 import codedcosmos.cometbot.guild.voice.speaker.components.TrackList;
@@ -29,6 +30,8 @@ import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.entities.VoiceChannel;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+import net.dv8tion.jda.api.exceptions.InsufficientPermissionException;
+
 import java.util.Arrays;
 
 public class MusicSpeaker extends AudioEventAdapter {
@@ -95,7 +98,7 @@ public class MusicSpeaker extends AudioEventAdapter {
 		} catch (Exception e) {
 			stop();
 			Log.printErr(e);
-			TextSender.send(context.getBotTextChannel(), "Failed to play song:\nReason: "+e.getMessage());
+			TextSender.send(context.getBotTextChannel(), "Failed to play song\nError: "+e.getMessage());
 		}
 	}
 	
@@ -113,7 +116,7 @@ public class MusicSpeaker extends AudioEventAdapter {
 		player.stopTrack();
 		play(true);
 	}
-
+	
 	@Override
 	public void onTrackEnd(AudioPlayer player, AudioTrack track, AudioTrackEndReason endReason) {
 		// Only start the next track if the end reason is suitable for it (FINISHED or LOAD_FAILED)
@@ -165,11 +168,17 @@ public class MusicSpeaker extends AudioEventAdapter {
 		}
 	}
 
-	public void connect(Guild guild, VoiceChannel voiceChannel, TextChannel textChannel) {
-		guild.getAudioManager().openAudioConnection(voiceChannel);
-		guild.getAudioManager().setSendingHandler(player.getSendHandler());
-		
-		TextSender.send(textChannel, "On my way!");
+	public boolean connect(Guild guild, VoiceChannel voiceChannel, TextChannel textChannel) {
+		try {
+			guild.getAudioManager().openAudioConnection(voiceChannel);
+			guild.getAudioManager().setSendingHandler(player.getSendHandler());
+			
+			TextSender.send(textChannel, "On my way!");
+			return true;
+		} catch (InsufficientPermissionException e) {
+			TextSender.send(textChannel, "I do not have permission to join that channel");
+			return false;
+		}
 	}
 	
 	public String getNowPlayingMessageText() {
@@ -194,6 +203,10 @@ public class MusicSpeaker extends AudioEventAdapter {
 		addPlay(links, event.getTextChannel(), event.getAuthor().getName());
 	}
 	
+	public void addPlay(String link, TextChannel channel, String dj) {
+		addPlay(new String[] {link}, channel, dj);
+	}
+	
 	public void addPlay(String[] links, TextChannel channel, String dj) {
 		// Add First one (This will block for that one link)
 		trackList.addToQueue(channel, dj, links, true);
@@ -214,7 +227,25 @@ public class MusicSpeaker extends AudioEventAdapter {
 			TextSender.sendThenWait(channel,"There are now " + trackList.size() + " songs in the queue!");
 		}
 	}
-
+	
+	public void addPlayNext(MessageReceivedEvent event) {
+		// Get Links
+		String[] args = event.getMessage().getContentRaw().split(" ");
+		String[] links = Arrays.copyOfRange(args, 1, args.length);
+		
+		if (links.length > 1) {
+			TextSender.send(event, "There can only be 1 song in the play next queue");
+		}
+		
+		trackList.addPlayNext(event.getTextChannel(), links[0], event.getAuthor().getName());
+		
+		if (status == SpeakerStatus.Playing) {
+			TextSender.sendThenWait(event, "Added song to play next");
+		} else {
+			play(true);
+		}
+	}
+	
 	public void leave() {
 		TextSender.sendThenWait(context.getBotTextChannel(), "Left channel, guess the party is over.");
 		clearSongs();

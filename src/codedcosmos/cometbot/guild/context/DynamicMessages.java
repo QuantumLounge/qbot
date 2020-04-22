@@ -14,7 +14,6 @@
 
 package codedcosmos.cometbot.guild.context;
 
-import codedcosmos.cometbot.guild.chat.commands.Queue;
 import codedcosmos.cometbot.guild.chat.messages.built.help.HelpMessage;
 import codedcosmos.cometbot.guild.chat.messages.built.lastplaying.NowPlayingMessage;
 import codedcosmos.cometbot.guild.chat.messages.built.queue.QueueMessage;
@@ -43,6 +42,7 @@ public class DynamicMessages implements ReactionReactor {
 		nowPlayingMessage.onReactionAdd(event);
 		helpMessage.onReactionAdd(event);
 		queueMessage.onReactionAdd(event);
+		searchMessage.onReactionAdd(event);
 	}
 	
 	@Override
@@ -50,6 +50,7 @@ public class DynamicMessages implements ReactionReactor {
 		nowPlayingMessage.onReactionRemove(event);
 		helpMessage.onReactionRemove(event);
 		queueMessage.onReactionRemove(event);
+		searchMessage.onReactionRemove(event);
 	}
 	
 	
@@ -57,10 +58,10 @@ public class DynamicMessages implements ReactionReactor {
 	private SearchMessage searchMessage;
 	
 	public void sendSearchMessage(String search) {
+		searchMessage.clearReactions();
 		searchMessage = new SearchMessage(context);
 		searchMessage.sendSearch(search);
 	}
-	
 	
 	// Now playing message
 	private NowPlayingMessage nowPlayingMessage;

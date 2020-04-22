@@ -24,4 +24,13 @@ public class UnicodeReactions {
 	public static final String STOP = "\u23F9";
 	
 	public static final String HEART = "\u2665";
+	
+	public static final String CANCEL = "\uD83D\uDEAB";
+	
+	
+	public static final String ONE = "1\u20E3";
+	public static final String TWO = "2\u20E3";
+	public static final String THREE = "3\u20E3";
+	public static final String FOUR = "4\u20E3";
+	public static final String FIVE = "5\u20E3";
 }

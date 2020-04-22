@@ -39,6 +39,10 @@ public class TrackList {
 	// Number of songs played in a session
 	private int songsPlayed = 0;
 	
+	// PlayNext
+	private boolean playNextAvaliable = false;
+	private LoadedTrack playNext;
+	
 	public TrackList() {
 		isShuffling = false;
 		shufflingRandom = new Random();
@@ -66,6 +70,8 @@ public class TrackList {
 	}
 	
 	public void addToQueue(TextChannel channel, String dj, String[] links, boolean block) {
+		links = processLinks(links);
+		
 		ArrayList<Future<Void>> futures = new ArrayList<Future<Void>>(links.length);
 		
 		for (String link : links) {
@@ -87,8 +93,7 @@ public class TrackList {
 				
 				@Override
 				public void loadFailed(FriendlyException e) {
-					Log.printErr(e);
-					TextSender.sendThenWait(channel, "Failed to load song '" + link + "', load Failed!");
+					printLoadFailed(e, channel);
 				}
 			});
 			
@@ -108,6 +113,49 @@ public class TrackList {
 		}
 	}
 	
+	public void addPlayNext(TextChannel channel, String link, String dj) {
+		Future<Void> future = MusicPlayer.getPlayerManager().loadItemOrdered(channel, link, new AudioLoadResultHandler() {
+			@Override
+			public void trackLoaded(AudioTrack audioTrack) {
+				addPlayNext(audioTrack, dj, link);
+			}
+			
+			@Override
+			public void playlistLoaded(AudioPlaylist audioPlaylist) {
+				TextSender.sendThenWait(channel, "Play next song cannot be a playlist");
+			}
+			
+			@Override
+			public void noMatches() {
+				TextSender.sendThenWait(channel, "Failed to load song, no matches avaliable.");
+			}
+			
+			@Override
+			public void loadFailed(FriendlyException e) {
+				printLoadFailed(e, channel);
+			}
+		});
+		
+		while (true) {
+			if (future.isCancelled() || future.isDone()) break;
+		}
+	}
+	
+	public void addPlayNext(AudioTrack track, String dj, String link) {
+		playNext = new LoadedTrack(track, dj, link);
+		playNextAvaliable = true;
+	}
+	
+	// Utils
+	private String[] processLinks(String[] links) {
+		for (int i = 0; i < links.length; i++) {
+			if (links[i].startsWith("www.")) {
+				links[i] = "https://"+links[i];
+			}
+		}
+		return links;
+	}
+	
 	// Removing
 	public void clear() {
 		queue.clear();
@@ -119,6 +167,12 @@ public class TrackList {
 		// Increment total
 		songsPlayed++;
 		
+		// If play next choose that
+		if (playNextAvaliable) {
+			playNextAvaliable = false;
+			return playNext;
+		}
+		
 		int i = isShuffling ? shufflingRandom.nextInt(queue.size()) : 0;
 		
 		LoadedTrack loadedTrack = queue.get(i);
@@ -128,7 +182,7 @@ public class TrackList {
 	
 	// Queue Size
 	public boolean hasSongs() {
-		return queue.size() > 0;
+		return queue.size() > 0 || playNextAvaliable;
 	}
 	
 	public int size() {
@@ -172,5 +226,11 @@ public class TrackList {
 	
 	public LoadedTrack getTrack(int i) {
 		return queue.get(i);
+	}
+	
+	// Utils
+	private void printLoadFailed(FriendlyException e, TextChannel channel) {
+		Log.printErr(e);
+		TextSender.sendThenWait(channel, "Failed to load song, " + e.getLocalizedMessage());
 	}
 }

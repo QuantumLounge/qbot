@@ -16,12 +16,10 @@ package codedcosmos.cometbot.utils.web;
 
 public class SearchTrack {
 	private String link;
-	private String artist;
 	private String name;
 	
-	public SearchTrack(String link, String artist, String name) {
+	public SearchTrack(String link, String name) {
 		this.link = link;
-		this.artist = artist;
 		this.name = name;
 	}
 	
@@ -32,10 +30,6 @@ public class SearchTrack {
 	
 	public String getLink() {
 		return link;
-	}
-	
-	public String getArtist() {
-		return artist;
 	}
 	
 	public String getName() {
