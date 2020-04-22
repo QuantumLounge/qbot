@@ -30,7 +30,7 @@ public class AudioSendManager {
 	public AudioSendManager(AudioEventListener listener) {
 		player = MusicPlayer.generatePlayer();
 		player.setVolume(100);
-		player.setFrameBufferDuration(80);
+		player.setFrameBufferDuration(240);
 		player.addListener(listener);
 		
 		sendHandler = new AudioPlayerSendHandler(player);

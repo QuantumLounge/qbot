@@ -15,12 +15,11 @@
 package codedcosmos.cometbot.guild.chat.messages.built.help;
 
 import codedcosmos.cometbot.core.CometBot;
-import codedcosmos.cometbot.guild.chat.commands.Help;
+import codedcosmos.cometbot.guild.commands.Help;
 import codedcosmos.hyperdiscord.chat.messages.BookMessage;
 import codedcosmos.hyperdiscord.command.Command;
 import codedcosmos.hyperdiscord.command.prebuilt.HelpMessageGenerator;
 import codedcosmos.hyperdiscord.guild.GuildContext;
-import codedcosmos.hyperdiscord.utils.debug.Log;
 import net.dv8tion.jda.api.entities.Message;
 
 import java.util.ArrayList;

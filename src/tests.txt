@@ -1,0 +1,19 @@
+1)
+Verify joining then leaving works correctly
+
+2)
+Play a single song to completion
+https://www.youtube.com/watch?v=FZUcpVmEHuk
+
+3)
+Check skip/stop/pause commands
+
+4)
+Check skip/stop/pause reactions
+
+5)
+Check if queue works
+
+6)
+Verify play next
+https://www.youtube.com/watch?v=9RTaIpVuTqE

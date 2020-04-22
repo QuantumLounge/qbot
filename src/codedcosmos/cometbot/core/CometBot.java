@@ -19,9 +19,11 @@ import codedcosmos.cometbot.guild.chat.messages.CometCommandListener;
 import codedcosmos.cometbot.guild.context.CometGuildContext;
 import codedcosmos.cometbot.guild.context.CometGuildHandler;
 import codedcosmos.cometbot.guild.voice.lava.MusicPlayer;
+import codedcosmos.cometbot.utils.web.YoutubeSearcher;
 import codedcosmos.hyperdiscord.bot.ArgsParser;
 import codedcosmos.hyperdiscord.guild.GuildHandler;
 import codedcosmos.hyperdiscord.utils.debug.Log;
+import com.sedmelluq.discord.lavaplayer.jdaudp.NativeAudioSendFactory;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Activity;
@@ -33,7 +35,7 @@ import java.util.Random;
 public class CometBot {
 
 	// Version
-	public static final String VERSION = "1.1";
+	public static final String VERSION = "1.2";
 
 	// Guilds
 	public static GuildHandler<CometGuildContext> guilds;
@@ -49,6 +51,12 @@ public class CometBot {
 
 		HashMap<String, String> mappedArgs = ArgsParser.parseArgs(args, "token");
 
+		// setup youtube
+		if (mappedArgs.containsKey("youtubeapikey")) {
+			YoutubeSearcher.setup(mappedArgs.get("youtubeapikey"));
+		}
+		
+		// Get token
 		String token = mappedArgs.get("token");
 		
 		// Setup guilds
@@ -62,12 +70,15 @@ public class CometBot {
 		Log.print("Prepared Music Player");
 
 		try {
-			JDABuilder builder = new JDABuilder(token);
+			JDABuilder builder = JDABuilder.createDefault(token);
 
 			builder.setActivity(Activity.listening(".help"));
 			builder.addEventListeners(commands);
 			builder.addEventListeners(new EventHandler());
-
+			
+			// JDA-nas
+			builder.setAudioSendFactory(new NativeAudioSendFactory());
+			
 			JDA jda = builder.build();
 
 			ExecutorThread thread = new ExecutorThread("TickingThread", 10) {

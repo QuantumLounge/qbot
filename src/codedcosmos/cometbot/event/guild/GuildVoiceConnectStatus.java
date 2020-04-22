@@ -14,11 +14,7 @@
 
 package codedcosmos.cometbot.event.guild;
 
-import codedcosmos.cometbot.core.CometBot;
-import codedcosmos.cometbot.guild.chat.commands.Leave;
-import codedcosmos.cometbot.guild.context.CometGuildContext;
-import net.dv8tion.jda.api.entities.Guild;
-import net.dv8tion.jda.api.entities.VoiceChannel;
+import codedcosmos.cometbot.guild.commands.Leave;
 import net.dv8tion.jda.api.events.guild.voice.GuildVoiceJoinEvent;
 import net.dv8tion.jda.api.events.guild.voice.GuildVoiceLeaveEvent;
 import net.dv8tion.jda.api.events.guild.voice.GuildVoiceMoveEvent;
