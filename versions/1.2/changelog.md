@@ -1,6 +1,6 @@
 ## CometBot - v1.2
 
-Mostly a bug fix and quality of life update
+The update that finally includes the highly requested search command!
 
 ### Search
 This highly requested feature finally makes it's way in version 1.2. 
