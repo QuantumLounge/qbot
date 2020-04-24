@@ -195,14 +195,6 @@ public class MusicSpeaker extends AudioEventAdapter {
 		}
 	}
 	
-	public void addPlay(MessageReceivedEvent event) {
-		// Get Links
-		String[] args = event.getMessage().getContentRaw().split(" ");
-		String[] links = Arrays.copyOfRange(args, 1, args.length);
-		
-		addPlay(links, event.getTextChannel(), event.getAuthor().getName());
-	}
-	
 	public void addPlay(String link, TextChannel channel, String dj) {
 		addPlay(new String[] {link}, channel, dj);
 	}
@@ -262,6 +254,10 @@ public class MusicSpeaker extends AudioEventAdapter {
 
 	public long getQueueTimeLength() {
 		return trackList.getQueueTimeLength();
+	}
+	
+	public AudioSendManager getPlayer() {
+		return player;
 	}
 	
 	public SpeakerStatus getStatus() {

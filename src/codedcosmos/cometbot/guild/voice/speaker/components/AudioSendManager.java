@@ -15,8 +15,10 @@
 package codedcosmos.cometbot.guild.voice.speaker.components;
 
 import codedcosmos.cometbot.guild.voice.lava.AudioPlayerSendHandler;
+import codedcosmos.cometbot.guild.voice.lava.EqSettings;
 import codedcosmos.cometbot.guild.voice.lava.MusicPlayer;
 import codedcosmos.hyperdiscord.utils.text.TextUtils;
+import com.sedmelluq.discord.lavaplayer.filter.equalizer.EqualizerFactory;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayer;
 import com.sedmelluq.discord.lavaplayer.player.event.AudioEventListener;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
@@ -25,13 +27,17 @@ import net.dv8tion.jda.api.audio.AudioSendHandler;
 public class AudioSendManager {
 	// Player
 	private AudioPlayer player;
-	private AudioSendHandler sendHandler;
+	private AudioPlayerSendHandler sendHandler;
+	private EqualizerFactory equalizer;
 	
 	public AudioSendManager(AudioEventListener listener) {
 		player = MusicPlayer.generatePlayer();
 		player.setVolume(100);
-		player.setFrameBufferDuration(240);
+		player.setFrameBufferDuration(500);
 		player.addListener(listener);
+		
+		// Equaliser
+		equalizer = new EqualizerFactory();
 		
 		sendHandler = new AudioPlayerSendHandler(player);
 	}
@@ -57,6 +63,27 @@ public class AudioSendManager {
 	
 	public void unpause() {
 		player.setPaused(false);
+	}
+	
+	// Eq
+	public void disableEq() {
+		player.setFilterFactory(null);
+	}
+	
+	public void bassBoost() {
+		player.setFilterFactory(equalizer);
+		float[] eqSetting = EqSettings.BASS_BOOST;
+		for (int i = 0; i < eqSetting.length; i++) {
+			equalizer.setGain(i, eqSetting[i]);
+		}
+	}
+	
+	public void trebleBoost() {
+		player.setFilterFactory(equalizer);
+		float[] eqSetting = EqSettings.BASS_BOOST;
+		for (int i = 0; i < eqSetting.length; i++) {
+			equalizer.setGain(i, -eqSetting[i]);
+		}
 	}
 
 	// Getters

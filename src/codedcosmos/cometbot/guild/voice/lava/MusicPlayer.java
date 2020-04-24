@@ -29,6 +29,7 @@ public class MusicPlayer {
 		AudioConfiguration configuration = new AudioConfiguration();
 		configuration.setOpusEncodingQuality(AudioConfiguration.OPUS_QUALITY_MAX);
 		configuration.setResamplingQuality(AudioConfiguration.ResamplingQuality.HIGH);
+		configuration.setFilterHotSwapEnabled(true);
 
 		manager = new DefaultAudioPlayerManager();
 		AudioSourceManagers.registerRemoteSources(manager);

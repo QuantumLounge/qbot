@@ -58,7 +58,7 @@ public class DynamicMessages implements ReactionReactor {
 	private SearchMessage searchMessage;
 	
 	public void sendSearchMessage(String search) {
-		searchMessage.clearReactions();
+		searchMessage.forceComplete();
 		searchMessage = new SearchMessage(context);
 		searchMessage.sendSearch(search);
 	}
