@@ -2,12 +2,13 @@
 .search all star
 .eq bass
 .eq normal
-Do pause play
 .skip
+Do pause play
 .shuffle
 Works with youtube playlists
 .play https://www.youtube.com/watch?v=RwltBfb-GUM&list=PLe8jmEHFkvsaDOOWcREvkgFoj6MD0pQ67
 .queue
 .queuelength
 .help
+.leave
 .goodbot
