@@ -98,8 +98,12 @@ public class CometBot {
 
 				@Override
 				public void run() {
-					for (CometGuildContext guild : guilds.getGuilds()) {
-						guild.getSpeaker().tick();
+					try {
+						for (CometGuildContext guild : guilds.getGuilds()) {
+							guild.getSpeaker().tick();
+						}
+					} catch (Exception e) {
+						Log.printErr(e);
 					}
 				}
 			};

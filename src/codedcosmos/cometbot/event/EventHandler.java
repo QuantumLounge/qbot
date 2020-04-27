@@ -17,12 +17,14 @@ package codedcosmos.cometbot.event;
 import codedcosmos.cometbot.core.CometBot;
 import codedcosmos.cometbot.event.guild.GuildReadyEventHandler;
 import codedcosmos.cometbot.event.guild.GuildVoiceConnectStatus;
+import codedcosmos.cometbot.guild.context.CometGuildContext;
 import codedcosmos.hyperdiscord.utils.debug.Log;
 import net.dv8tion.jda.api.events.DisconnectEvent;
 import net.dv8tion.jda.api.events.ReadyEvent;
 import net.dv8tion.jda.api.events.ReconnectedEvent;
 import net.dv8tion.jda.api.events.guild.GuildReadyEvent;
 import net.dv8tion.jda.api.events.guild.voice.*;
+import net.dv8tion.jda.api.events.message.MessageDeleteEvent;
 import net.dv8tion.jda.api.events.message.guild.react.GuildMessageReactionAddEvent;
 import net.dv8tion.jda.api.events.message.guild.react.GuildMessageReactionRemoveEvent;
 import net.dv8tion.jda.api.hooks.EventListener;
@@ -44,6 +46,13 @@ public class EventHandler implements EventListener {
 			Log.print("Reconnected Event");
 		}
 
+		// Chat
+		else if (event instanceof MessageDeleteEvent) {
+			MessageDeleteEvent messageDeleteEvent = (MessageDeleteEvent) event;
+			CometGuildContext context = CometBot.guilds.getContextBy(messageDeleteEvent.getGuild());
+			context.getDynamicMessages().onMessageDelete(messageDeleteEvent);
+		}
+		
 		// Guild
 		else if (event instanceof GuildReadyEvent) {
 			GuildReadyEventHandler.onEvent((GuildReadyEvent)event);

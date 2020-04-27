@@ -187,7 +187,6 @@ public class SearchMessage extends DynamicMessage {
 	}
 	
 	public void clearReactions() {
-		Log.print(state);
 		if (state == SearchMessageState.Unsent) return;
 		
 		message.clearReactions().complete();
@@ -230,6 +229,8 @@ public class SearchMessage extends DynamicMessage {
 	}
 	
 	public void forceComplete() {
+		if (state == SearchMessageState.Completed || state == SearchMessageState.Canceled) return;
+		
 		clearReactions();
 		state = SearchMessageState.Canceled;
 		updateState();

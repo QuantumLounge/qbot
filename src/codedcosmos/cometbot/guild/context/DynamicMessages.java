@@ -19,6 +19,7 @@ import codedcosmos.cometbot.guild.chat.messages.built.lastplaying.NowPlayingMess
 import codedcosmos.cometbot.guild.chat.messages.built.queue.QueueMessage;
 import codedcosmos.cometbot.guild.chat.messages.built.search.SearchMessage;
 import codedcosmos.hyperdiscord.chat.reactions.ReactionReactor;
+import net.dv8tion.jda.api.events.message.MessageDeleteEvent;
 import net.dv8tion.jda.api.events.message.guild.react.GuildMessageReactionAddEvent;
 import net.dv8tion.jda.api.events.message.guild.react.GuildMessageReactionRemoveEvent;
 
@@ -33,6 +34,13 @@ public class DynamicMessages implements ReactionReactor {
 		nowPlayingMessage = new NowPlayingMessage(context);
 		helpMessage = new HelpMessage(context, "1");
 		queueMessage = new QueueMessage(context);
+	}
+	
+	public void onMessageDelete(MessageDeleteEvent event) {
+		searchMessage.checkForDeletion(event);
+		nowPlayingMessage.checkForDeletion(event);
+		helpMessage.checkForDeletion(event);
+		queueMessage.checkForDeletion(event);
 	}
 	
 	

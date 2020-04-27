@@ -68,7 +68,6 @@ public class YoutubeSearcher {
 		
 		for (SearchResult result : results) {
 			String link = "www.youtube.com/watch?v="+result.getId().getVideoId();
-			Log.printErr(link);
 			String name = result.getSnippet().getTitle();
 			
 			SearchTrack searchTrack = new SearchTrack(link, name);

@@ -63,7 +63,6 @@ public class Play implements Command {
 				break;
 			}
 		}
-		Log.print("are urls?" + allAreUrls);
 		
 		if (allAreUrls) {
 			// Add direct link
