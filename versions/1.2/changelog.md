@@ -22,3 +22,4 @@ This highly requested feature finally makes it's way in version 1.2.
 
 ### Bug fixes
 * No bug fixes? To be honest there is probably a ton of new bugs to fix in this update.
+

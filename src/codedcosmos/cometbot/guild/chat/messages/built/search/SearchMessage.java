@@ -41,14 +41,14 @@ public class SearchMessage extends DynamicMessage {
 	private ReactionBox cancel;
 	private ArrayList<SearchTrack> songs;
 	
-	private boolean sent = false;
-	private boolean completed = false;
+	private SearchMessageState state;
 	
 	public SearchMessage(CometGuildContext context) {
 		super(context);
 		
 		reactionBoxes = new ReactionBox[0];
 		songs = new ArrayList<SearchTrack>(0);
+		state = SearchMessageState.Unsent;
 	}
 	
 	public void sendSearch(String search) {
@@ -60,6 +60,12 @@ public class SearchMessage extends DynamicMessage {
 	
 	@Override
 	public Message getNew() {
+		if (state == SearchMessageState.Completed) {
+			return getSearchCompletedMessage();
+		} else if (state == SearchMessageState.Canceled) {
+			return getSearchCanceledMessage();
+		}
+		
 		// Retrieve Tracks
 		songs = new ArrayList<SearchTrack>();
 		try {
@@ -72,14 +78,8 @@ public class SearchMessage extends DynamicMessage {
 			return getEmptyMessage();
 		}
 		
-		if (completed) {
-			sent = true;
-			return getSearchCompletedMessage();
-		}
-		
 		// Create message
 		Message message = getMessage(songs);
-		sent = true;
 		
 		// Get message
 		return message;
@@ -87,6 +87,7 @@ public class SearchMessage extends DynamicMessage {
 	
 	@Override
 	public void postSend(Message message) {
+		state = SearchMessageState.Sent;
 		setupReactionBoxes(message);
 	}
 	
@@ -96,7 +97,7 @@ public class SearchMessage extends DynamicMessage {
 	}
 	
 	private void setupReactionBoxes(Message message) {
-		if (!sent) {
+		if (state == SearchMessageState.Unsent) {
 			return;
 		}
 		
@@ -131,6 +132,19 @@ public class SearchMessage extends DynamicMessage {
 		EmbedBuilder embedBuilder = new EmbedBuilder();
 		
 		embedBuilder.setDescription("Search completed");
+		
+		builder.setContent("");
+		builder.setEmbed(embedBuilder.build());
+		Message message = builder.build();
+		return message;
+	}
+	
+	private Message getSearchCanceledMessage() {
+		MessageBuilder builder = new MessageBuilder();
+		
+		EmbedBuilder embedBuilder = new EmbedBuilder();
+		
+		embedBuilder.setDescription("Search Canceled");
 		
 		builder.setContent("");
 		builder.setEmbed(embedBuilder.build());
@@ -173,18 +187,14 @@ public class SearchMessage extends DynamicMessage {
 	}
 	
 	public void clearReactions() {
-		if (!sent) return;
+		if (state == SearchMessageState.Unsent) return;
 		
 		message.clearReactions().complete();
 	}
 	
 	@Override
 	public void onReactionAdd(GuildMessageReactionAddEvent event) {
-		if (!sent) return;
-		if (completed) {
-			clearReactions();
-			return;
-		}
+		if (state != SearchMessageState.Sent) return;
 		
 		cancel.onReactionAdd(event);
 		for (ReactionBox box : reactionBoxes) {
@@ -195,27 +205,33 @@ public class SearchMessage extends DynamicMessage {
 		
 		if (cancel.isSelected()) {
 			update = true;
-			completed = true;
-		}
-		
-		for (int i = 0; i < songs.size(); i++) {
-			if (reactionBoxes[i].isSelected()) {
-				update = true;
-				completed = true;
-				
-				CometGuildContext context = CometBot.guilds.getContextBy(event.getGuild());
-				Log.printErr(songs.get(i).getLink());
-				context.getSpeaker().addPlay(songs.get(i).getLink(), message.getTextChannel(), event.getUser().getName());
-				break;
+			clearReactions();
+			state = SearchMessageState.Canceled;
+		} else {
+			for (int i = 0; i < songs.size(); i++) {
+				if (reactionBoxes[i].isSelected()) {
+					update = true;
+					clearReactions();
+					state = SearchMessageState.Completed;
+					
+					CometGuildContext context = CometBot.guilds.getContextBy(event.getGuild());
+					context.getSpeaker().addPlay(songs.get(i).getLink(), message.getTextChannel(), event.getUser().getName());
+					break;
+				}
 			}
 		}
+		
 		
 		if (update) {
 			updateState();
 		}
 	}
 	
-	public boolean shouldUpdate() {
-		return (sent && !completed);
+	public void forceComplete() {
+		if (state == SearchMessageState.Completed || state == SearchMessageState.Canceled) return;
+		
+		clearReactions();
+		state = SearchMessageState.Canceled;
+		updateState();
 	}
 }

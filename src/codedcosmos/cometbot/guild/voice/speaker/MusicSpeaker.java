@@ -195,14 +195,6 @@ public class MusicSpeaker extends AudioEventAdapter {
 		}
 	}
 	
-	public void addPlay(MessageReceivedEvent event) {
-		// Get Links
-		String[] args = event.getMessage().getContentRaw().split(" ");
-		String[] links = Arrays.copyOfRange(args, 1, args.length);
-		
-		addPlay(links, event.getTextChannel(), event.getAuthor().getName());
-	}
-	
 	public void addPlay(String link, TextChannel channel, String dj) {
 		addPlay(new String[] {link}, channel, dj);
 	}
@@ -235,6 +227,11 @@ public class MusicSpeaker extends AudioEventAdapter {
 		
 		if (links.length > 1) {
 			TextSender.send(event, "There can only be 1 song in the play next queue");
+			return;
+		}
+		if (links.length == 0) {
+			TextSender.send(event, "You must specify a song to play next");
+			return;
 		}
 		
 		trackList.addPlayNext(event.getTextChannel(), links[0], event.getAuthor().getName());
@@ -262,6 +259,10 @@ public class MusicSpeaker extends AudioEventAdapter {
 
 	public long getQueueTimeLength() {
 		return trackList.getQueueTimeLength();
+	}
+	
+	public AudioSendManager getPlayer() {
+		return player;
 	}
 	
 	public SpeakerStatus getStatus() {

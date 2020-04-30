@@ -16,9 +16,13 @@ package codedcosmos.cometbot.guild.chat.messages;
 
 import codedcosmos.cometbot.core.CometBot;
 import codedcosmos.cometbot.guild.context.CometGuildContext;
+import codedcosmos.hyperdiscord.chat.TextSender;
 import codedcosmos.hyperdiscord.command.CommandListener;
+import codedcosmos.hyperdiscord.utils.debug.Log;
+import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+import net.dv8tion.jda.api.exceptions.PermissionException;
 
 public class CometCommandListener extends CommandListener<CometGuildContext> {
 	public CometCommandListener() {
@@ -28,5 +32,19 @@ public class CometCommandListener extends CommandListener<CometGuildContext> {
 	@Override
 	public CometGuildContext addGuild(Guild guild) {
 		return CometBot.guilds.addGuild(guild);
+	}
+	
+	@Override
+	public void onCommandExecutionException(Exception e, MessageReceivedEvent event) {
+		if (e instanceof PermissionException) {
+			TextSender.send(event, "I don't have permission to do that!");
+			TextSender.send(event, "Permission Required " + ((PermissionException) e).getPermission());
+			return;
+		}
+		
+		Log.printErr("Caught Exception when trying to execute command!");
+		Log.printErr("Command Message: '" + event.getMessage().getContentRaw() + "'");
+		Log.printErr("");
+		Log.printErr(e);
 	}
 }

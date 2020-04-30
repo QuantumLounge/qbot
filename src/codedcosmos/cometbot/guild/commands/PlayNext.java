@@ -8,7 +8,7 @@ import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 public class PlayNext implements Command {
 	@Override
 	public String getName() {
-		return "play";
+		return "playnext";
 	}
 	
 	@Override
@@ -18,7 +18,7 @@ public class PlayNext implements Command {
 	
 	@Override
 	public String[] getStynax() {
-		return new String[] {"[link]"};
+		return new String[] {"(link)"};
 	}
 	
 	@Override

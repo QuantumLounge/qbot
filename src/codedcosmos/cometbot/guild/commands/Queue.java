@@ -22,17 +22,17 @@ import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 public class Queue implements Command {
 	@Override
 	public String getName() {
-		return "queuelength";
+		return "queue";
 	}
 	
 	@Override
 	public String getHelp() {
-		return "Gets the length of the current queue";
+		return "Displays the current queue";
 	}
 	
 	@Override
 	public String[] getStynax() {
-		return new String[] {"queue"};
+		return new String[] {""};
 	}
 	
 	@Override

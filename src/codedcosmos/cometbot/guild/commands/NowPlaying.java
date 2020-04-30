@@ -27,7 +27,7 @@ public class NowPlaying implements Command {
 	
 	@Override
 	public String getHelp() {
-		return "Leaves the current channel";
+		return "Displays the nowplaying message";
 	}
 
 	@Override

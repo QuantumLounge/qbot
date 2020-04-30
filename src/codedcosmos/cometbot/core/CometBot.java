@@ -35,7 +35,7 @@ import java.util.Random;
 public class CometBot {
 
 	// Version
-	public static final String VERSION = "1.2";
+	public static final String VERSION = "1.6";
 
 	// Guilds
 	public static GuildHandler<CometGuildContext> guilds;
@@ -47,7 +47,7 @@ public class CometBot {
 	public static Random random = new Random();
 
 	public static void main(String[] args) {
-		Log.print("Starting Comet Bot");
+		Log.print("Starting Comet Bot " + VERSION);
 
 		HashMap<String, String> mappedArgs = ArgsParser.parseArgs(args, "token");
 
@@ -98,8 +98,12 @@ public class CometBot {
 
 				@Override
 				public void run() {
-					for (CometGuildContext guild : guilds.getGuilds()) {
-						guild.getSpeaker().tick();
+					try {
+						for (CometGuildContext guild : guilds.getGuilds()) {
+							guild.getSpeaker().tick();
+						}
+					} catch (Exception e) {
+						Log.printErr(e);
 					}
 				}
 			};

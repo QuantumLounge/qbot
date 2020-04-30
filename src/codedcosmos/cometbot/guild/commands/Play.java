@@ -16,8 +16,15 @@ package codedcosmos.cometbot.guild.commands;
 
 import codedcosmos.cometbot.core.CometBot;
 import codedcosmos.cometbot.guild.context.CometGuildContext;
+import codedcosmos.cometbot.utils.web.SearchTrack;
+import codedcosmos.cometbot.utils.web.YoutubeSearcher;
+import codedcosmos.hyperdiscord.chat.TextSender;
 import codedcosmos.hyperdiscord.command.Command;
+import codedcosmos.hyperdiscord.utils.debug.Log;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+
+import java.util.ArrayList;
+import java.util.Arrays;
 
 public class Play implements Command {
 	@Override
@@ -33,7 +40,7 @@ public class Play implements Command {
 
 	@Override
 	public String[] getStynax() {
-		return new String[] {"[links...]"};
+		return new String[] {"", "[links...]"};
 	}
 
 	@Override
@@ -43,7 +50,38 @@ public class Play implements Command {
 		
 		// Get Context
 		CometGuildContext context = CometBot.guilds.getContextBy(event);
-		context.getSpeaker().addPlay(event);
+		
+		// Args
+		String[] args = event.getMessage().getContentRaw().split(" ");
+		args = Arrays.copyOfRange(args, 1, args.length);
+		
+		// Check if they are links or a search term
+		boolean allAreUrls = true;
+		for (int i = 0; i < args.length; i++) {
+			if (!args[i].startsWith("www.") && !args[i].startsWith("https://") && !args[i].startsWith("http://")) {
+				allAreUrls = false;
+				break;
+			}
+		}
+		
+		if (allAreUrls) {
+			// Add direct link
+			context.getSpeaker().addPlay(args, event.getTextChannel(), event.getAuthor().getName());
+		} else {
+			StringBuilder stringBuilder = new StringBuilder();
+			for (int i = 0; i < args.length; i++) {
+				stringBuilder.append(args[i]).append(" ");
+			}
+			ArrayList<SearchTrack> results = YoutubeSearcher.searchForSongs(stringBuilder.toString(), 1);
+			if (results.size() == 0) {
+				TextSender.send(event, "No Results found");
+				return;
+			}
+			TextSender.send(event, "Found song on youtube");
+			
+			// Add Searched song
+			context.getSpeaker().addPlay(results.get(0).getLink(), event.getTextChannel(), event.getAuthor().getName());
+		}
 	}
 
 	public String[] getAliases() {
