@@ -32,7 +32,7 @@ public class LastError implements Command {
 	
 	@Override
 	public String[] getStynax() {
-		return new String[0];
+		return new String[] {""};
 	}
 	
 	@Override

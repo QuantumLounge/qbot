@@ -215,7 +215,6 @@ public class SearchMessage extends DynamicMessage {
 					state = SearchMessageState.Completed;
 					
 					CometGuildContext context = CometBot.guilds.getContextBy(event.getGuild());
-					Log.printErr(songs.get(i).getLink());
 					context.getSpeaker().addPlay(songs.get(i).getLink(), message.getTextChannel(), event.getUser().getName());
 					break;
 				}

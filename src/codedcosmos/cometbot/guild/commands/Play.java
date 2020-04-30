@@ -40,7 +40,7 @@ public class Play implements Command {
 
 	@Override
 	public String[] getStynax() {
-		return new String[] {"[links...]"};
+		return new String[] {"", "[links...]"};
 	}
 
 	@Override

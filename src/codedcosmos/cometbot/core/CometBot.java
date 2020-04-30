@@ -35,7 +35,7 @@ import java.util.Random;
 public class CometBot {
 
 	// Version
-	public static final String VERSION = "1.4";
+	public static final String VERSION = "1.5";
 
 	// Guilds
 	public static GuildHandler<CometGuildContext> guilds;
@@ -47,7 +47,7 @@ public class CometBot {
 	public static Random random = new Random();
 
 	public static void main(String[] args) {
-		Log.print("Starting Comet Bot");
+		Log.print("Starting Comet Bot " + VERSION);
 
 		HashMap<String, String> mappedArgs = ArgsParser.parseArgs(args, "token");
 

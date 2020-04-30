@@ -227,6 +227,11 @@ public class MusicSpeaker extends AudioEventAdapter {
 		
 		if (links.length > 1) {
 			TextSender.send(event, "There can only be 1 song in the play next queue");
+			return;
+		}
+		if (links.length == 0) {
+			TextSender.send(event, "You must specify a song to play next");
+			return;
 		}
 		
 		trackList.addPlayNext(event.getTextChannel(), links[0], event.getAuthor().getName());

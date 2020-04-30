@@ -30,7 +30,7 @@ public class Purpose implements Command {
 	
 	@Override
 	public String getHelp() {
-		return "IDK";
+		return "WHAT IS YOUR PURPOSE";
 	}
 
 	@Override

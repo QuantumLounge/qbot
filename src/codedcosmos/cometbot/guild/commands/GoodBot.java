@@ -30,7 +30,7 @@ public class GoodBot implements Command {
 	
 	@Override
 	public String[] getStynax() {
-		return new String[] {"goodbot"};
+		return new String[] {""};
 	}
 	
 	@Override
