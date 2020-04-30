@@ -21,6 +21,7 @@ For search support
 
 
 ## Features
+* 23 Commands
 * Automatic Search
 * Can play from Youtube, SoundCloud, Bandcamp, Vimeo and Twitch Streams
 * Playlist support
