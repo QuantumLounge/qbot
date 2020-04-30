@@ -7,7 +7,7 @@ plugins {
 }
 
 group 'codedcosmos'
-version '1.5'
+version '1.6'
 mainClassName = 'codedcosmos.cometbot.core.CometBot'
 
 sourceCompatibility = 11
